@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+// No float, so we take the 100 times to make it integer.
+const int hour_limit = 100;
+const int day_limit = 300;
+const int baseline_rate = 2;
+const int bolus_rate = 20;
+chan start;
+chan bolus;
+chan startinjection;
+chan stopinjection;
+int hour_queue[14400];
+int day_queue[14400];
+int cnt = 0;
+int total = 0;
+int sum1, i, past_hour_amount;
+clock gclk;
+
+
+// A[] total &lt;= day_limit
+
+
+    
+        
+</declaration>
+	<template>
+		<name x="5" y="5">PIS</name>
+		<declaration>// Place local declarations here.
+clock t;
+int calculate_hour_amount()
+{
+    int sum1 = 0;
+    if (cnt &gt;= 60 &amp;&amp; cnt &lt;= 14399)
+    {
+        for (i = cnt-59; i&lt;cnt; i+=1)
+        {
+            sum1 += hour_queue[i];
+        }
+    }
+    else
+    {
+        for (i = 0; i&lt;cnt; i+=1)
+        {
+            sum1 += hour_queue[i];
+        }
+    }
+    return sum1;
+}
+
+int calculate_day_amount()
+{
+    int sum1 = 0;
+    if (cnt &gt;= 1439 &amp;&amp; cnt &lt;= 14399)
+    {
+        for (i = cnt-1439; i&lt;cnt; i+=1)
+        {
+            sum1 += hour_queue[i];
+        }
+    }
+    else
+    {
+        for (i = 0; i&lt;cnt; i+=1)
+        {
+            sum1 += hour_queue[i];
+        }
+    }
+    return sum1;
+}
+
+void set_value(int a, int cnt)
+{
+    hour_queue[cnt] = a;
+    return;
+}
+</declaration>
+		<location id="id0" x="-519" y="93">
+			<name x="-561" y="51">Initialize</name>
+		</location>
+		<location id="id1" x="17" y="93">
+			<name x="-77" y="42">StartInjection</name>
+		</location>
+		<location id="id2" x="424" y="93">
+			<name x="414" y="59">StopInjection</name>
+		</location>
+		<location id="id3" x="76" y="-136">
+			<name x="42" y="-178">RequestBolus</name>
+		</location>
+		<location id="id4" x="-247" y="-170">
+		</location>
+		<location id="id5" x="-60" y="382">
+		</location>
+		<init ref="id0"/>
+		<transition id="id6">
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-816" y="-51">(bolus_rate + baseline_rate + past_hour_amount &gt; hour_limit) || (total + bolus_rate + baseline_rate &gt; day_limit)</label>
+			<label kind="assignment" x="-544" y="-26">set_value(0,cnt), cnt+= 1</label>
+			<nail x="-366" y="34"/>
+		</transition>
+		<transition id="id7">
+			<source ref="id5"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-612" y="203">(baseline_rate + past_hour_amount &gt; hour_limit) || (total + baseline_rate &gt; day_limit)</label>
+			<label kind="assignment" x="-357" y="178">set_value(0,cnt), cnt+= 1</label>
+			<nail x="-255" y="237"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id5"/>
+			<target ref="id1"/>
+			<label kind="guard" x="0" y="288">(baseline_rate + past_hour_amount &lt;= hour_limit) &amp;&amp; (total + baseline_rate &lt;= day_limit)</label>
+			<label kind="assignment" x="34" y="322">total += baseline_rate, set_value(baseline_rate, cnt), cnt+= 1</label>
+			<nail x="212" y="254"/>
+		</transition>
+		<transition id="id9">
+			<source ref="id1"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="-128" y="246">past_hour_amount = calculate_hour_amount()</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-493" y="-230">(bolus_rate + baseline_rate + past_hour_amount &lt;= hour_limit) &amp;&amp; (total + bolus_rate + baseline_rate &lt;= day_limit)</label>
+			<label kind="assignment" x="-366" y="-204">total += bolus_rate + baseline_rate, set_value(bolus_rate + baseline_rate, cnt)</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-145" y="-77">bolus?</label>
+			<label kind="assignment" x="-247" y="-102">past_hour_amount = calculate_hour_amount()</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="59" y="-34">cnt+= 1</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="178" y="144">startinjection?</label>
+			<label kind="assignment" x="152" y="169">set_value(0,cnt), cnt+= 1</label>
+			<nail x="229" y="186"/>
+		</transition>
+		<transition id="id14">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="169" y="-43">stopinjection?</label>
+			<label kind="assignment" x="118" y="8">set_value(0,cnt), cnt+= 1</label>
+			<nail x="220" y="-17"/>
+		</transition>
+		<transition id="id15">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-323" y="68">start?</label>
+			<label kind="assignment" x="-340" y="93">total = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Physician</name>
+		<location id="id16" x="-246" y="-17">
+			<name x="-256" y="-51">Initialize</name>
+		</location>
+		<location id="id17" x="0" y="-17">
+			<name x="-42" y="-59">StartInjection</name>
+		</location>
+		<location id="id18" x="-127" y="127">
+			<name x="-137" y="93">StopInjection</name>
+		</location>
+		<init ref="id16"/>
+		<transition id="id19">
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-8" y="102">startinjection!</label>
+			<nail x="42" y="102"/>
+			<nail x="42" y="102"/>
+		</transition>
+		<transition id="id20">
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-109" y="38">stopinjection!</label>
+		</transition>
+		<transition id="id21">
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-153" y="-42">start!</label>
+		</transition>
+	</template>
+	<template>
+		<name>Patient</name>
+		<location id="id22" x="-153" y="-17">
+		</location>
+		<init ref="id22"/>
+		<transition id="id23">
+			<source ref="id22"/>
+			<target ref="id22"/>
+			<label kind="synchronisation" x="-178" y="93">bolus!</label>
+			<nail x="-238" y="85"/>
+			<nail x="-238" y="85"/>
+			<nail x="-68" y="85"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+pis = PIS();
+physician = Physician();
+patient = Patient();
+// List one or more processes to be composed into a system.
+system pis, physician, patient;
+</system>
+	<queries>
+		<query>
+			<formula>A&lt;&gt; (past_hour_amount &lt;= hour_limit)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2024-06-24 00:01:05 +0800">
+			</result>
+		</query>
+		<query>
+			<formula>A&lt;&gt; (total &lt;= day_limit)</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2024-06-24 00:01:07 +0800">
+			</result>
+		</query>
+	</queries>
+</nta>
