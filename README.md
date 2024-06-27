@@ -21,3 +21,10 @@ Please refer to `doc/UserManual.md` or `doc/UserManual.pdf` for UI operation det
 
 ## Run the tests
 Once you have installed the required dependencies, you can run the tests of Painkiller Injection System by executing the python file `test/functional.py` for functional tests, `test/unit.py` for unit tests and `test/integration.py` for integration tests.
+
+# Score
++ Overall Project: 65 / 70
++ Documentation: 
+    + Requirement: 8.9 / 10
+    + Development: 9.0 / 10
+    + Validation: 8.0 / 10
